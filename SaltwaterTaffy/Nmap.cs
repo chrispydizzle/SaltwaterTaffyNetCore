@@ -1,6 +1,7 @@
 ﻿// This file is part of SaltwaterTaffy, an nmap wrapper library for .NET
 // Copyright (C) 2013 Thom Dixon <thom@thomdixon.org>
 // Released under the GNU GPLv2 or any later version
+using NmapXmlParser;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,8 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Simple.DotNMap;
-using Simple.DotNMap.Extensions;
+using System.Xml.Serialization;
 
 namespace SaltwaterTaffy
 {
@@ -631,7 +631,13 @@ namespace SaltwaterTaffy
                 }
             }
 
-            return Serialization.DeserializeFromFile<nmaprun>(OutputPath);
+            var xmlSerializer = new XmlSerializer(typeof(nmaprun));
+            var result = default(nmaprun);
+            using (StreamReader xmlStream = new StreamReader(OutputPath))
+            {
+                result = xmlSerializer.Deserialize(xmlStream) as nmaprun;
+            }
+            return result;
         }
     }
 }

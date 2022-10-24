@@ -1,17 +1,17 @@
 ﻿// This file is part of SaltwaterTaffy, an nmap wrapper library for .NET
 // Copyright (C) 2013 Thom Dixon <thom@thomdixon.org>
 // Released under the GNU GPLv2 or any later version
+using NmapXmlParser;
+using SaltwaterTaffy.Container;
+using SaltwaterTaffy.Utility;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using SaltwaterTaffy.Container;
-using SaltwaterTaffy.Utility;
-using Simple.DotNMap;
-using System.Diagnostics;
 
 namespace SaltwaterTaffy
 {
@@ -29,30 +29,20 @@ namespace SaltwaterTaffy
             Total = int.Parse(result.runstats.hosts.total);
             Up = int.Parse(result.runstats.hosts.up);
             Down = int.Parse(result.runstats.hosts.down);
-            Hosts = result.Items != null
-                        ? result.Items.OfType<host>().Select(
-                            x => new Host
-                            {
-                                Address = IPAddress.Parse(x.address.addr),
-                                Ports =
-                                        PortsSection(
-                                            x.Items.OfType<ports>().DefaultIfEmpty(null).FirstOrDefault()),
-                                ExtraPorts =
-                                        ExtraPortsSection(
-                                            x.Items.OfType<ports>().DefaultIfEmpty(null).FirstOrDefault()),
-                                Hostnames =
-                                        HostnamesSection(
-                                            x.Items.OfType<hostnames>().DefaultIfEmpty(null).FirstOrDefault()),
-                                OsMatches = OsMatchesSection(
-                                        x.Items.OfType<os>().DefaultIfEmpty(null).FirstOrDefault())
-                            })
-                        : Enumerable.Empty<Host>();
+            Hosts = result.Items.OfType<host>().Select(x => new Host()
+            {
+                Address = IPAddress.Parse(x.address.addr),
+                Ports = PortsSection(x.Items?.OfType<ports>().DefaultIfEmpty(null).FirstOrDefault()),
+                ExtraPorts = ExtraPortsSection(x.Items?.OfType<ports>().DefaultIfEmpty(null).FirstOrDefault()),
+                Hostnames = HostnamesSection(x.Items?.OfType<hostnames>().DefaultIfEmpty(null).FirstOrDefault()),
+                OsMatches = OsMatchesSection(x.Items?.OfType<os>().DefaultIfEmpty(null).FirstOrDefault())
+            });
         }
 
         public int Total { get; set; }
         public int Up { get; set; }
         public int Down { get; set; }
-        public IEnumerable<Host> Hosts { get; set; }
+        public IEnumerable<Host> Hosts { get; set; } = new List<Host>();
 
         /// <summary>
         ///     Process the "ports" section of the XML document

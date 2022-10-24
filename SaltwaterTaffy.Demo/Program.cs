@@ -1,9 +1,10 @@
 ﻿// This file is part of SaltwaterTaffy, an nmap wrapper library for .NET
 // Copyright (C) 2013 Thom Dixon <thom@thomdixon.org>
 // Released under the GNU GPLv2 or any later version
-using System;
-using System.Linq;
 using SaltwaterTaffy.Container;
+using System;
+using System.Diagnostics;
+using System.Linq;
 
 namespace SaltwaterTaffy.Demo
 {
@@ -14,7 +15,15 @@ namespace SaltwaterTaffy.Demo
             Console.Write("Enter an IP or subnet: ");
             var target = new Target(Console.ReadLine().Trim());
             Console.WriteLine("Initializing scan of {0}", target);
-            ScanResult result = new Scanner(target, System.Diagnostics.ProcessWindowStyle.Hidden).PortScan();
+            var context = new NmapContext(ProcessWindowStyle.Maximized);
+            context.Options.Add(NmapFlag.TopPorts, "5000");
+            context.Options.Add(NmapFlag.TreatHostsAsOnline);
+            context.Options.Add(NmapFlag.VersionAll);
+            context.Options.Add(NmapFlag.OsDetection);
+            context.Target = target.ToString();
+            context.Options.Add(NmapFlag.Verbose);
+            var r = context.Run();
+            ScanResult result = new ScanResult(r);
             Console.WriteLine("Detected {0} host(s), {1} up and {2} down.", result.Total, result.Up, result.Down);
             foreach (Host i in result.Hosts)
             {
@@ -40,8 +49,6 @@ namespace SaltwaterTaffy.Demo
                     Console.WriteLine("and is probably running {0}", i.OsMatches.First().Name);
                 }
             }
-
-            Console.Read();
         }
     }
 }
